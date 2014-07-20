@@ -20,7 +20,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 # Assignment
 
 ## Loading and preprocessing the data
-```{r}
+
+```r
 library(data.table)
 library(ggplot2)
 library(lattice)
@@ -30,7 +31,8 @@ data<-read.table("activity.csv", header=TRUE, sep=",", colClasses=c("integer", "
 
 
 ## What is mean total number of steps taken per day?
-```{r}
+
+```r
 a<-aggregate(steps~date, data=data, FUN=sum)
 alpha<-mean(a$steps)
 gamma<-median(a$steps)
@@ -39,40 +41,59 @@ temp<-stats
 temp$stat[2]<-temp$stat[2]+500
 ```
 **MEAN**
-```{r echo=FALSE}
-alpha
+
+```
+## [1] 10766
 ```
 **MEDIAN**
-```{r echo=FALSE}
-gamma
+
+```
+## [1] 10765
 ```
 **PLOT** 
 
 *Histogram of the total number of steps taken each day*
-```{r fig.width=10, fig.height=6}
+
+```r
 g<-ggplot(a, aes(steps)) + geom_histogram(fill="lightpink")+geom_vline(data=stats, mapping=aes(xintercept=stat), linetype="longdash")+geom_text(data=temp, mapping=aes(x=stat, y=8, label=label), size=4, angle=90, vjust=-0.4, hjust=0)
 g+theme_bw()+ggtitle("Frequency of Total Number of Steps Taken in a Day")+theme(plot.title = element_text(lineheight=10, face="bold"))+ylab("Frequency (in days)")+xlab("Steps")
 ```
 
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+
 
 ## What is the average daily activity pattern?
-```{r}
+
+```r
 b<-data.table(aggregate(steps~interval, data=data, FUN=sum))
 stats<-data.frame(stat=c(mean(b$steps), median(b$steps)), label=c("Mean", "Median"))
 temp<-stats
 temp$stat[]<-c(temp$stat[1]+250,temp$stat[1]-350)
 ```
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+
+```r
 b[steps==max(steps)]
+```
+
+```
+##    interval steps
+## 1:      835 10927
 ```
 **PLOT** 
 
 *Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days*
-```{r fig.width=10, fig.height=6}
+
+```r
 g<-ggplot(b, aes(x=interval, y=steps))+geom_line()+geom_hline(data=stats, aes(yintercept=stat), linetype="longdash")+geom_text(data=temp, aes(x=0, y=stat, label=label))
 g+theme_bw()+ggtitle("Average Daily Activity")+theme(plot.title = element_text(lineheight=10, face="bold"))
 ```
+
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
 
 
 ## Imputing missing values
@@ -80,35 +101,58 @@ The strategy used for imputing missing values in the dataset is to fill in the N
 
 
 Total number of missing values in the dataset
-```{r}
+
+```r
 sum(!complete.cases(data))
 ```
-```{r}
+
+```
+## [1] 2304
+```
+
+```r
 mean_d<-data.table(aggregate(steps~date, data, mean))
 d<-data.table(date=unique(data$date))
 mean_date<-data.table(merge(mean_d, d, by="date", all=TRUE))
 mean_date$steps[is.na(mean_date$steps)]<-0
 imp<-merge(data, mean_date, by="date", all=TRUE)
 imp$steps.x[is.na(imp$steps.x)]<-imp$steps.y
+```
+
+```
+## Warning: number of items to replace is not a multiple of replacement
+## length
+```
+
+```r
 imp_data<-data.table(date=imp$date, steps=imp$steps.x, interval=imp$interval)
 a_i<-aggregate(steps~date, data=imp_data, FUN=sum)
 stats<-data.frame(stat=c(mean(a_i$steps), median(a_i$steps)), label=c("Mean", "Median"))
 ```
 **MEAN**
-```{r echo=FALSE}
-mean(a_i$steps)
+
+```
+## [1] 10392
 ```
 **MEDIAN**
-```{r echo=FALSE}
-median(a_i$steps)
+
+```
+## [1] 11015
 ```
 **PLOT** 
 
 *Histogram of the total number of steps taken each day for* **Imputed Data**
-```{r fig.width=10, fig.height=6}
+
+```r
 g<-ggplot(a_i, aes(steps)) + geom_histogram(fill="lightblue")+geom_vline(data=stats, mapping=aes(xintercept=stat), linetype="longdash")+geom_text(data=stats, mapping=aes(x=stat, y=8, label=label), size=4, angle=90, vjust=-0.4, hjust=0)
 g+theme_bw()+ggtitle("Frequency of Total Number of Steps Taken in a Day (w/ Imputed Data)")+theme(plot.title = element_text(lineheight=10, face="bold"))+ylab("Frequency (in days)")+xlab("Steps")
 ```
+
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13.png) 
 
 **Do these values differ from the estimates from the first part of the assignment?**
 The imputed data has deviated the mean and median from the data set. Also the 0 steps have increased which is a major reason for the lower median.
@@ -120,7 +164,8 @@ The mean differs by about 373 steps and the Median differs by -250 steps.
 ## Are there differences in activity patterns between weekdays and weekends?
 As seen in the graph below, the average steps on weekdays start earlier than weekends. This may be due to waking up late on weekends. Also through out the day the weekends have more constant activity, where as weekdays have more activity in the early hours then the rest of the day. 
 
-```{r}
+
+```r
 temp<-data
 data$day<-weekdays(data$date)
 wd<-c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
@@ -140,7 +185,10 @@ dat.text <- data.frame(Type = c("weekday", "weekend", "weekday", "weekend"), xp 
 **PLOT** 
 
 *Panel plot containing a time series plot of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days*
-```{r fig.width=11, fig.height=5}
+
+```r
 g<-ggplot(data=c, aes(x=interval, y=steps))+geom_line(colour="skyblue")+facet_grid(~days)+geom_hline(aes(yintercept = xp), data = dat.hline, linetype="longdash")+geom_text(aes(x=100, y=xp+5, label = dat.text$label), data = dat.hline)
 g+theme_bw()+ggtitle("Average Daily Activity")+theme(plot.title = element_text(lineheight=10, face="bold"))
 ```
+
+![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15.png) 
